@@ -28,19 +28,19 @@ class MythicAPI:
         except Exception as e:
             return "Error: Could not execute command: {}".format(command)
 
-    async def read_file(self, agent_id, file_path) -> str:
+    async def issue_task(self, agent_id, command_name, parameters) -> str:
         try:
             output = await mythic.issue_task_and_waitfor_task_output(
                 self.mythic_instance,
-                command_name="cat",
+                command_name=command_name,
+                parameters=parameters,
                 callback_display_id=agent_id,
-                parameters={"path": file_path},
             )
-
-            return output.decode()
-
+            return str(output)
         except Exception as e:
-            return "Error: Could not read file: {}".format(e)
+            return "Error: Could not execute command: {}: {}".format(
+                command_name, e
+            )
 
     async def make_token(self, agent_id, username, password) -> bool:
         try:
