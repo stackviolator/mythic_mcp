@@ -1,5 +1,4 @@
-from mythic import mythic, mythic_classes
-
+from mythic import mythic, mythic_classes, mythic_utilities
 
 class MythicAPI:
     def __init__(self, username, password, server_ip, server_port):
@@ -24,23 +23,23 @@ class MythicAPI:
                 parameters=command,
                 callback_display_id=agent_id,
             )
-            return str(output)
+            return output.decode()
         except Exception as e:
             return "Error: Could not execute command: {}".format(command)
 
-    async def issue_task(self, agent_id, command_name, parameters) -> str:
+    async def issue_task(self, agent_id: int, command_name: str, parameters: str) -> str:
         try:
             output = await mythic.issue_task_and_waitfor_task_output(
-                self.mythic_instance,
+                mythic=self.mythic_instance,
                 command_name=command_name,
                 parameters=parameters,
                 callback_display_id=agent_id,
             )
-            return str(output)
+            return output.decode()
         except Exception as e:
-            return "Error: Could not execute command: {}: {}".format(
-                command_name, e
-            )
+            if "Request timed out" in str(e):
+                return "Task timed out. Is the callback dead?"
+            return "Error: Could not issue task: {}".format(e)
 
     async def make_token(self, agent_id, username, password) -> bool:
         try:
@@ -111,3 +110,33 @@ class MythicAPI:
 
         except Exception as e:
             return False
+
+    async def get_cmd_help_message(self, agent_id: int, command_name: str = None) -> str:
+        """Get the help string for a given command, if no command is provided, get all help strings
+        
+        Args:
+            agent_id: The ID of the agent to get help for
+            command_name: The name of the command to get help for
+
+        Returns:
+            str: The help string for the command
+        """
+        """
+        Note: To get a list of all loaded commands and their help strings, `help` needs no arguments.
+        However, the typical tasking functions through the APIs require the `parameters` field to be populated.
+        Therefore we can't pass no arguments to `help` and get a list of all commands.
+
+        Note: Can't use graphql_subscription because it will return an Unauthorized error.
+        Even though it works for getting loaded commands. I have no idea why.
+        """
+
+        try:
+            output = await mythic.issue_task_and_waitfor_task_output(
+                mythic=self.mythic_instance,
+                command_name="help",
+                parameters=command_name,
+                callback_display_id=agent_id,
+            )
+            return output.decode()
+        except Exception as e:
+            return "Error: Could not get help: {}".format(e)

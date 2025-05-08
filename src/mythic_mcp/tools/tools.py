@@ -1,4 +1,8 @@
 from mythic_mcp.api.mythic_api import MythicAPI
+from mythic.mythic import mythic_utilities, graphql_queries
+import mythic_mcp.api.graphql_queries as mcp_graphql_queries
+import base64
+from typing import Optional
 
 async def init_api(username, password, host, port):
     """Initializes the Mythic API. Ran at server startup automatically.
@@ -32,6 +36,74 @@ async def get_all_agents() -> str:
 
     return output 
 
+async def get_cmd_help_message(agent_id: int, command_name: str) -> str:
+    """Returns a list of help commands for a given agent.
+
+    Args:
+        agent_id: ID of the agent to get help for
+        command_name: Optional name of specific command to get help for. If not provided, returns help for all commands.
+
+    Returns:
+        str: Formatted string containing help commands
+    """
+    return await api.get_cmd_help_message(agent_id, command_name)
+
+
+async def issue_task(agent_id: int, command_name: str, parameters: str) -> str:
+    """Issues a task and waits for the task to complete.
+
+    Args:
+        agent_id: ID of the agent to issue task to
+        command_name: Name of the command to issue
+        parameters: Parameters to pass to the command
+    """
+    return await api.issue_task(agent_id, command_name, parameters) 
+
+async def get_loaded_commands(agent_id: int) -> str:
+    """Returns a list of loaded commands for a given agent.
+
+    Args:
+        agent_id: ID of the agent to get commands for
+
+    Returns:
+        str: Formatted string containing loaded commands
+    """
+    mythic = api.mythic_instance
+    
+    # Set up variables for the query
+    variables = {"callback_id": agent_id}
+    
+    try:
+        # Execute the GraphQL subscription
+        async for result in mythic_utilities.graphql_subscription(
+            mythic=mythic,
+            query=mcp_graphql_queries.GET_LOADED_COMMANDS,
+            variables=variables
+        ):
+            # Format the output
+            output = "Loaded Commands:\n"
+            for cmd in result.get("loadedcommands", []):
+                command = cmd.get("command", {})
+                output += f"\nCommand: {command.get('cmd', 'N/A')}\n"
+                output += f"ID: {command.get('id', 'N/A')}\n"
+                output += f"Payload Type: {command.get('payloadtype', {}).get('name', 'N/A')}\n"
+                
+                # Add parameters if they exist
+                params = command.get("commandparameters", [])
+                if params:
+                    output += "Parameters:\n"
+                    for param in params:
+                        output += f"  - {param.get('name', 'N/A')}: {param.get('parameter_type', 'N/A')}\n"
+                        if param.get("required"):
+                            output += "    (Required)\n"
+                
+                output += "---\n"
+            
+            return output
+            
+    except Exception as e:
+        return f"Error getting loaded commands: {str(e)}"
+    
 async def run_as_user(
     agent_id: int, username: str, password: str
 ) -> str:
@@ -59,7 +131,7 @@ async def run_shell_command(agent_id: int, command_line: str) -> str:
         str: Command output
     """
     output = await api.execute_shell_command(agent_id, command_line)
-    return f"---\n{str(output)}\n---"
+    return f"---\n{output}\n---"
 
 
 async def execute_mimikatz(agent_id: int, mimikatz_arguments: str) -> str:
@@ -74,13 +146,6 @@ async def execute_mimikatz(agent_id: int, mimikatz_arguments: str) -> str:
     """
     output = await api.execute_mimikatz(agent_id, mimikatz_arguments)
     return f"---\n{output}\n---" 
-
-"""File operation tools for Mythic MCP."""
-
-import base64
-from typing import Union
-from mythic_mcp.api.mythic_api import MythicAPI
-
 
 async def read_file(agent_id: int, file_path: str) -> str:
     """Reads a file using the ReadFile win32 API call.

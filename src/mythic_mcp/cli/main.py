@@ -33,11 +33,12 @@ def main():
     register_prompts()
 
     asyncio.run(tools.init_api(username, password, host, port))
-    
+
     mcp.settings.port = int(os.getenv("MYTHIC_MCP_PORT", "8888"))
     mcp.settings.host = os.getenv("MYTHIC_MCP_HOST", "0.0.0.0")
     
     print(f"Running MCP on {mcp.settings.host}:{mcp.settings.port}")
+
     mcp.run("sse")
 
 if __name__ == "__main__":

@@ -1,6 +1,5 @@
 """Prompt templates for Mythic MCP."""
 
-
 def start_pentest(threat_actor: str, objective: str) -> str:
     """Generate a prompt for starting a penetration test.
 
