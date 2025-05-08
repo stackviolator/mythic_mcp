@@ -15,18 +15,6 @@ class MythicAPI:
             server_port=self.server_port,
         )
 
-    async def execute_shell_command(self, agent_id, command) -> str:
-        try:
-            output = await mythic.issue_task_and_waitfor_task_output(
-                self.mythic_instance,
-                command_name="shell",
-                parameters=command,
-                callback_display_id=agent_id,
-            )
-            return output.decode()
-        except Exception as e:
-            return "Error: Could not execute command: {}".format(command)
-
     async def issue_task(self, agent_id: int, command_name: str, parameters: str) -> str:
         try:
             output = await mythic.issue_task_and_waitfor_task_output(
@@ -54,20 +42,6 @@ class MythicAPI:
 
         except Exception as e:
             return False
-
-    async def execute_mimikatz(self, agent_id, mimikatz_command) -> str | None:
-        try:
-            output = await mythic.issue_task_and_waitfor_task_output(
-                self.mythic_instance,
-                command_name="mimikatz",
-                callback_display_id=agent_id,
-                parameters={"commands": mimikatz_command},
-            )
-
-            return output.decode()
-
-        except Exception as e:
-            return None
 
     async def get_all_agents(self):
         try:

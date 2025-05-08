@@ -120,33 +120,6 @@ async def run_as_user(
     output = await api.make_token(agent_id, username, password)
     return f"---\nAuthentication Result: {output}\n---" 
 
-async def run_shell_command(agent_id: int, command_line: str) -> str:
-    """Execute a shell script command line against a running agent.
-
-    Args:
-        agent_id: ID of agent to execute command on
-        command_line: A command to be executed
-
-    Returns:
-        str: Command output
-    """
-    output = await api.execute_shell_command(agent_id, command_line)
-    return f"---\n{output}\n---"
-
-
-async def execute_mimikatz(agent_id: int, mimikatz_arguments: str) -> str:
-    """Runs the hacker tool mimikatz with the provided arguments.
-
-    Args:
-        agent_id: ID of agent to execute command on
-        mimikatz_arguments: Arguments to pass to mimikatz tool
-
-    Returns:
-        str: Mimikatz output
-    """
-    output = await api.execute_mimikatz(agent_id, mimikatz_arguments)
-    return f"---\n{output}\n---" 
-
 async def read_file(agent_id: int, file_path: str) -> str:
     """Reads a file using the ReadFile win32 API call.
 
@@ -159,7 +132,6 @@ async def read_file(agent_id: int, file_path: str) -> str:
     """
     output = await api.read_file(agent_id, file_path)
     return f"---\n{output}\n---"
-
 
 async def upload_file(
     agent_id: int, file_name: str, remote_path: str, content: str
