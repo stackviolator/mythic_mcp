@@ -1,12 +1,23 @@
-from typing import List, Dict, Any
 from mythic_mcp.api.mythic_api import MythicAPI
 
-
-async def get_all_agents(api: MythicAPI) -> str:
-    """Returns a list of active agents.
-
+async def init_api(username, password, host, port):
+    """Initializes the Mythic API. Ran at server startup automatically.
+    TODO, this should have error handling. But there's like 4 layers of abstraction :(
     Args:
-        api: MythicAPI instance to use for the request
+        username: Username of the Mythic server
+        password: Password of the Mythic server
+        host: Host of the Mythic server
+        port: Port of the Mythic server
+
+    Returns:
+
+    """
+    global api
+    api = MythicAPI(username, password, host, port) 
+    await api.connect()
+
+async def get_all_agents() -> str:
+    """Returns a list of active agents.
 
     Returns:
         str: Formatted string containing agent information
@@ -22,12 +33,11 @@ async def get_all_agents(api: MythicAPI) -> str:
     return output 
 
 async def run_as_user(
-    api: MythicAPI, agent_id: int, username: str, password: str
+    agent_id: int, username: str, password: str
 ) -> str:
     """Attempt to authenticate as another user (network calls only) for the current session.
 
     Args:
-        api: MythicAPI instance to use for the request
         agent_id: ID of agent to execute command on
         username: Username of network account to use
         password: Password of network account
@@ -38,11 +48,10 @@ async def run_as_user(
     output = await api.make_token(agent_id, username, password)
     return f"---\nAuthentication Result: {output}\n---" 
 
-async def run_shell_command(api: MythicAPI, agent_id: int, command_line: str) -> str:
+async def run_shell_command(agent_id: int, command_line: str) -> str:
     """Execute a shell script command line against a running agent.
 
     Args:
-        api: MythicAPI instance to use for the request
         agent_id: ID of agent to execute command on
         command_line: A command to be executed
 
@@ -50,14 +59,13 @@ async def run_shell_command(api: MythicAPI, agent_id: int, command_line: str) ->
         str: Command output
     """
     output = await api.execute_shell_command(agent_id, command_line)
-    return f"---\n{output}\n---"
+    return f"---\n{str(output)}\n---"
 
 
-async def execute_mimikatz(api: MythicAPI, agent_id: int, mimikatz_arguments: str) -> str:
+async def execute_mimikatz(agent_id: int, mimikatz_arguments: str) -> str:
     """Runs the hacker tool mimikatz with the provided arguments.
 
     Args:
-        api: MythicAPI instance to use for the request
         agent_id: ID of agent to execute command on
         mimikatz_arguments: Arguments to pass to mimikatz tool
 
@@ -74,11 +82,10 @@ from typing import Union
 from mythic_mcp.api.mythic_api import MythicAPI
 
 
-async def read_file(api: MythicAPI, agent_id: int, file_path: str) -> str:
+async def read_file(agent_id: int, file_path: str) -> str:
     """Reads a file using the ReadFile win32 API call.
 
     Args:
-        api: MythicAPI instance to use for the request
         agent_id: ID of agent to read file from
         file_path: Path to the file to read on the target server
 
@@ -90,12 +97,11 @@ async def read_file(api: MythicAPI, agent_id: int, file_path: str) -> str:
 
 
 async def upload_file(
-    api: MythicAPI, agent_id: int, file_name: str, remote_path: str, content: str
+    agent_id: int, file_name: str, remote_path: str, content: str
 ) -> str:
     """Upload a file to the Mythic server and then to the remote target.
 
     Args:
-        api: MythicAPI instance to use for the request
         agent_id: ID of the agent to execute command on
         file_name: Name to give the file when uploading to Mythic server
         remote_path: Full path to where the file will be uploaded
