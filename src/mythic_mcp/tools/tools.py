@@ -4,7 +4,7 @@ import mythic_mcp.api.graphql_queries as mcp_graphql_queries
 import base64
 from typing import Optional
 
-async def init_api(username, password, host, port):
+async def mythic_init_api(username, password, host, port):
     """Initializes the Mythic API. Ran at server startup automatically.
     TODO, this should have error handling. But there's like 4 layers of abstraction :(
     Args:
@@ -20,7 +20,7 @@ async def init_api(username, password, host, port):
     api = MythicAPI(username, password, host, port) 
     await api.connect()
 
-async def get_all_agents() -> str:
+async def mythic_get_all_agents() -> str:
     """Returns a list of active agents.
 
     Returns:
@@ -36,7 +36,7 @@ async def get_all_agents() -> str:
 
     return output 
 
-async def get_cmd_help_message(agent_id: int, command_name: str) -> str:
+async def mythic_get_cmd_help_message(agent_id: int, command_name: str) -> str:
     """Returns a list of help commands for a given agent.
 
     Args:
@@ -49,7 +49,7 @@ async def get_cmd_help_message(agent_id: int, command_name: str) -> str:
     return await api.get_cmd_help_message(agent_id, command_name)
 
 
-async def issue_task(agent_id: int, command_name: str, parameters: str) -> str:
+async def mythic_issue_task(agent_id: int, command_name: str, parameters: str) -> str:
     """Issues a task and waits for the task to complete.
 
     Args:
@@ -59,7 +59,7 @@ async def issue_task(agent_id: int, command_name: str, parameters: str) -> str:
     """
     return await api.issue_task(agent_id, command_name, parameters) 
 
-async def get_loaded_commands(agent_id: int) -> str:
+async def mythic_get_loaded_commands(agent_id: int) -> str:
     """Returns a list of loaded commands for a given agent.
 
     Args:
@@ -104,7 +104,7 @@ async def get_loaded_commands(agent_id: int) -> str:
     except Exception as e:
         return f"Error getting loaded commands: {str(e)}"
     
-async def run_as_user(
+async def mythic_run_as_user(
     agent_id: int, username: str, password: str
 ) -> str:
     """Attempt to authenticate as another user (network calls only) for the current session.
@@ -120,7 +120,7 @@ async def run_as_user(
     output = await api.make_token(agent_id, username, password)
     return f"---\nAuthentication Result: {output}\n---" 
 
-async def read_file(agent_id: int, file_path: str) -> str:
+async def mythic_read_file(agent_id: int, file_path: str) -> str:
     """Reads a file using the ReadFile win32 API call.
 
     Args:
@@ -133,7 +133,7 @@ async def read_file(agent_id: int, file_path: str) -> str:
     output = await api.read_file(agent_id, file_path)
     return f"---\n{output}\n---"
 
-async def upload_file(
+async def mythic_upload_file(
     agent_id: int, file_name: str, remote_path: str, content: str
 ) -> str:
     """Upload a file to the Mythic server and then to the remote target.
